@@ -1,0 +1,196 @@
+body {
+  background-color: black; 
+}
+* {
+  font-family: 'Gabarito', sans-serif;
+  color: white; 
+}
+.div-to-center {
+  display: flex; 
+  justify-content: center; 
+}
+.the-paragraph {
+  display: inline-block; 
+  font-size: 20px; 
+  background-color: green;
+  border-radius: 5px; 
+  cursor: pointer; 
+  transition: background-color 0.1s; 
+}
+.the-paragraph:hover {
+  background-color: rgb(243, 68, 14);
+}
+.calendar,
+.time-input,
+.pill-name {
+  font-size: 18px; 
+  color: black; 
+}
+
+.registered-dates {
+  border-left-style: solid; 
+  padding-left: 15px;
+}
+.submit, 
+.clear {
+  font-size: 16px; 
+  background-color: lightblue; 
+  border-style: solid; 
+  color: black; 
+  padding: 7px 10px; 
+  border-radius: 5px; 
+  cursor: pointer;
+}
+
+.submit:active, 
+.clear:active {
+  opacity: 0.7; 
+}
+
+input {
+  display: block; 
+  margin-top: 10px; 
+  margin-bottom: 10px;
+  padding: 7px; 
+}
+
+html {
+  scroll-behavior: smooth; 
+}
+.readings-one,
+.readings-two {
+  display: flex; 
+  justify-content: center;
+}
+.plac, 
+.plah {
+  padding-top: 25px; 
+  padding-bottom: 25px; 
+  padding-left: 50px; 
+  padding-right: 50px; 
+  border-style: solid; 
+}
+.plac {
+  border-left-style: none; 
+  border-bottom-style: none; 
+}
+.plah {
+  border-right-style: none; 
+  border-bottom-style: none; 
+  border-left-style: none; 
+}
+
+.remove-top {
+  border-top-style: none; 
+}
+
+.heartrate, 
+.oxygen, 
+.diastolic, 
+.systolic {
+  border: 3px solid #FF474C; 
+  height: 100px; 
+  width: 100px; 
+  font-size: 30px; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  border-radius: 50px;
+  margin-top: -5px; 
+  transition: width 0.5s, height 0.5s, border-radius 0.5s, font-size 0.5s; 
+}
+.heartrate:hover,
+.oxygen:hover, 
+.diastolic:hover, 
+.systolic:hover {
+  height: 200px; 
+  width: 200px; 
+  border-radius: 100px; 
+  cursor: pointer; 
+  font-size: 35px; 
+}
+
+.readings {
+  margin-bottom: 20px; 
+}
+.name {
+  font-size: 20px;
+  margin-left: 10px; 
+}
+
+.registered-date {
+  padding: 5px;
+  padding-left: 10px;  
+  border-radius: 10px; 
+  transition: background-color 0.1s; 
+  cursor: pointer; 
+}
+
+.registered-date:hover {
+  background-color: rgb(243, 68, 14); 
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  margin-left: 20px; 
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+.wbv {
+  display: flex; 
+  align-items: center; 
+  margin-top: 50px; 
+}
