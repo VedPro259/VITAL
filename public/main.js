@@ -7,6 +7,7 @@ let dia;
 let sys; 
 let hr; 
 let spo2; 
+socket.emit('toggleLed', '9'); 
 document.querySelector('.wbv-range').disabled = true; 
 const canvas = document.getElementById('myChart');
 const ctx = canvas.getContext('2d');
