@@ -13,7 +13,7 @@ let ppg;
 var today = new Date();
 var dd = String(today.getDate()).padStart(2, '0');
 var mm = String(today.getMonth() + 1).padStart(2, '0'); 
-var yyyy = today.getFullYear();sdasd
+var yyyy = today.getFullYear();
 today = yyyy + '-' + mm + '-' + dd;
 document.getElementById("myDate").setAttribute('min', today);
 // document.querySelector('.wbv-range').disabled = true; 
