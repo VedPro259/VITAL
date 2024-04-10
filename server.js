@@ -1,6 +1,10 @@
+const express = require('express');
+const app = express();
+const http = require('http');
+const server = http.createServer(app);
+
 const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline');
-const express = require('express');
 const { Server } = require('socket.io');
 
 const port = new SerialPort({
@@ -13,21 +17,41 @@ const port = new SerialPort({
 });
 
 const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
+const io = new Server(server, { cors: { origin: "*" } });
 
-const app = express();
-const httpServer = require('http').createServer(app);
-const io = new Server(httpServer);
+const caretakerNamespace = io.of('/caretaker');
+const mainNamespace = io.of('/');
 
-app.use(express.static('public')); 
-
-parser.on('data', function(data) {
- io.emit('ledStatus', data);
+mainNamespace.on('connection', socket => {
+  socket.on('message', data => {
+      mainNamespace.emit('message', data);
+  });
+  socket.on('metrics', data => {
+    socket.broadcast.emit('metrics', data); 
+  });
+  socket.on('medication', data => {
+    socket.broadcast.emit('medication', data); 
+  });
+  socket.on('setDates', data => {
+    socket.broadcast.emit('setDates', data); 
+  }); 
+  socket.on('toggleLed', function(data) {
+      port.write(data);
+  });
+  socket.on('remov', data => {
+    socket.broadcast.emit('remov', data); 
+  })
+  parser.on('data', function(data) {
+    mainNamespace.emit('ledStatus', data);
+  });
 });
 
-io.on('connection', function(socket) {
- socket.on('toggleLed', function(data) {
-   port.write(data);
- });
+caretakerNamespace.on('connection', socket => {
 });
 
-httpServer.listen(3500);
+app.use('/', express.static('public'));
+app.use('/caretaker', express.static('caretaker'));
+
+server.listen(3500, () => {
+ console.log('Server is running on port 3500');
+});

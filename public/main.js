@@ -1,14 +1,29 @@
 let date;
 let count = 0; 
 let userDates = []; 
-var socket = io(); 
+var socket = io('http://192.168.1.92:3500'); 
+let nam; 
+const audio = new Audio("https://audio.jukehost.co.uk/zHB3AW4TEeJVg9ufaZMIzm10lF3iVdcr");
 let currentLine = '';
 let dia; 
 let sys; 
 let hr; 
 let spo2; 
+let ppg; 
+var today = new Date();
+var dd = String(today.getDate()).padStart(2, '0');
+var mm = String(today.getMonth() + 1).padStart(2, '0'); 
+var yyyy = today.getFullYear();
+today = yyyy + '-' + mm + '-' + dd;
+document.getElementById("myDate").setAttribute('min', today);
+// document.querySelector('.wbv-range').disabled = true; 
+
+socket.on("connection"); 
+socket.on("connect", () => {
+  nam = socket.id;  
+});
 socket.emit('toggleLed', '9'); 
-document.querySelector('.wbv-range').disabled = true; 
+
 const canvas = document.getElementById('myChart');
 const ctx = canvas.getContext('2d');
 let myChart = new Chart(ctx, {
@@ -16,10 +31,7 @@ let myChart = new Chart(ctx, {
   data: {
      labels: [],
      datasets: [
-       { label: 'HR', data: [], borderColor: 'rgba(255, 99, 132, 1)' },
-       { label: 'DIA', data: [], borderColor: 'rgba(54, 162, 235, 1)' },
-       { label: 'SYS', data: [], borderColor: 'rgba(255, 206, 86, 1)' },
-       { label: 'O2', data: [], borderColor: 'rgba(75, 192, 192, 1)' }
+       { label: 'PPG', data: [], borderColor: 'rgba(255, 255, 255, 1)' }
      ]
   },
   options: {
@@ -40,6 +52,26 @@ let myChart = new Chart(ctx, {
   }
 });
 
+function sendMetrics() {
+  let messageData = {
+    dia, 
+    sys, 
+    hr, 
+    spo2, 
+    ppg
+  }; 
+  socket.emit('metrics', messageData); 
+}
+
+function sendMessage() {
+  let messageData = {
+    senderName: nam, 
+    text: document.querySelector('.message').value
+  };
+  socket.emit('message', messageData); 
+  disableButton('.submit-for-chat'); 
+};
+
 function bpStage(sys, dia) {
   let str = ' You may have to consult a medical professional for a more accurate diagnosis.'
   if (sys > 180 || dia > 120) {
@@ -57,19 +89,36 @@ function bpStage(sys, dia) {
   }
 }
 
+function detectFlatlining(ppgSignals, threshold) {
+  //calculate the variation in the PPG signal
+  const variation = calculateVariation(ppgSignals);
+  //detect flatlining based on the variation
+  if (variation < threshold) {
+      socket.emit('remov', 'Flatlining detected'); //flatlining detected
+  } else {
+      socket.emit('remov', 'Heartbeat detected'); //no flatlining detected
+  }
+}
+
+function calculateVariation(ppgSignals) {
+  //calculate the standard deviation as a measure of variation
+  const mean = ppgSignals.reduce((a, b) => a + b) / ppgSignals.length;
+  const variance = ppgSignals.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / ppgSignals.length;
+  return Math.sqrt(variance);
+}
+
 function updateChart() {
-  if (myChart.data.datasets[0].data.length > 200) {
-    //send to database first
+  if (myChart.data.datasets[0].data.length > 99) {
+    detectFlatlining(myChart.data.datasets[0].data, 500);
+  }
+  if (myChart.data.datasets[0].data.length > 199) {
+    detectFlatlining(myChart.data.datasets[0].data, 500);
+    console.log(myChart.data.datasets[0].data.length); 
     myChart.data.datasets[0].data = []; 
-    myChart.data.datasets[1].data = []; 
-    myChart.data.datasets[2].data = []; 
-    myChart.data.datasets[3].data = []; 
     myChart.data.labels = []; 
-    console.log('hello'); 
   }
   myChart.data.labels.push(myChart.data.labels.length); 
   myChart.update();
-  
 } 
 
 function getDate() {
@@ -100,36 +149,17 @@ function disableButton(param) {
   }, 3000);
 }
 
-//event delegation 
-document.body.addEventListener('click', function(e) {
-  if (e.target.classList.contains('registered-date')) {
-    const clickedElement = e.target.closest('.registered-date');
-    //loop through all the date-[i]
-    //remove that one
-    //replace userDates[i] with ?
-    for (let i = 0; i < userDates.length; i++) {
-      if (document.querySelector(`.date-${i}`)) {
-        let thing = document.querySelector(`.date-${i}`); 
-        if (thing.innerHTML === clickedElement.innerHTML) {
-          thing.remove(); 
-          userDates[i] = '?'; 
-          document.querySelector('.checking').innerHTML = "Removed!"; 
-        }
-      }
-    }
-  }
-});
-
 function checkReminders() {
   for (let i = 0; i < userDates.length; i++) {
     if (date.startsWith(userDates[i])) {
       document.querySelector('.the-paragraph').style.padding = '5px'; 
-      document.querySelector('.the-paragraph').innerHTML = `Reminder for ${userDates[i]} `; 
+      document.querySelector('.the-paragraph').innerHTML = `Reminder for ${document.querySelector(`.date-${i}`).innerHTML} `; 
       document.querySelectorAll(`.date-${i}`).forEach(value => { 
         value.remove(); 
       })
       userDates[i] = '?'; 
-      //write alert in here  
+      socket.emit('medication', { userDates, count }); 
+      socket.emit('remov', i); 
       if (date.startsWith("Sun")) {
         socket.emit('toggleLed', '1'); 
       } else if (date.startsWith("M")) {
@@ -149,14 +179,62 @@ function checkReminders() {
       }
     }
   };
-}
+};
 
-var today = new Date();
-var dd = String(today.getDate()).padStart(2, '0');
-var mm = String(today.getMonth() + 1).padStart(2, '0'); 
-var yyyy = today.getFullYear();
-today = yyyy + '-' + mm + '-' + dd;
-document.getElementById("myDate").setAttribute('min', today);
+function displayStage() {
+  if (sys && dia) {
+    console.log('hi'); 
+    document.querySelector('.bp-paragraph').innerHTML = `You ${bpStage(sys, dia)}`; 
+  }  
+};
+
+socket.on('remov', data => {
+  //data is the count
+  document.querySelector(`.date-${data}`).remove(); 
+});
+
+socket.on("medication", data => {
+  userDates = data.userDates; 
+  count = data.count; 
+  console.log(userDates);
+});
+
+socket.on("message", data => {
+  if (data.senderName.startsWith(nam)) {
+    document.querySelector('.texts').innerHTML += `<p style="color: green; margin-bottom: -10px; font-size: 17px;">${data.text}</p>`; 
+  } else {
+    document.querySelector('.texts').innerHTML += `<p style="text-align: right; margin-bottom: -10px; font-size: 17px;">${data.text}</p>`; 
+    audio.play();
+  }
+});
+
+socket.on('setDates', data => {
+  let { dateValue, timeValue, pillName } = data; 
+  dateValue = formatDate(dateValue) + ' ' + timeValue; 
+  for (let i = 0; i < userDates.length; i++) {
+    if (userDates[i] === dateValue) {
+      document.querySelector('.checking').innerHTML = 'Please do not add the same date twice.';
+      return;
+    }
+  }
+  if (dateValue.includes('undefined') || dateValue.includes('NaN')) {
+    document.querySelector('.checking').innerHTML = 'Please enter proper credentials'; 
+  } else {     
+    userDates.push( dateValue );
+    console.log(userDates); 
+    document.querySelector('.checking').innerHTML = 'Logged!'; 
+    let coolBeans; 
+    if (pillName) {
+      coolBeans = pillName + ', '; 
+    } else {
+      coolBeans = ''; 
+    }
+    document.querySelector('.registered-dates').innerHTML += `<p class="date-${count} registered-date">${coolBeans + userDates[count] }</p>`; 
+    count++
+    socket.emit('medication', { userDates, count }); 
+  }
+  disableButton('.submit');
+});
 
 setInterval(getDate, 1000); 
 setInterval(checkReminders, 1000); 
@@ -167,14 +245,43 @@ document.querySelector('.clear')
     document.querySelector('.registered-dates')
       .innerHTML = ''; 
     count = 0; 
-    document.querySelector('.checking').innerHTML = "Cleared!"
-    socket.emit('toggleLed', '0'); 
+    document.querySelector('.checking').innerHTML = "Cleared!"; 
+    socket.emit('medication', { userDates, count }); 
+    socket.emit('remov', -1); 
   });
+
+//event delegation 
+document.body.addEventListener('click', function(e) {
+  if (e.target.classList.contains('registered-date')) {
+    const clickedElement = e.target.closest('.registered-date');
+    //loop through all the date-[i]
+    //remove that one
+    //replace userDates[i] with ?
+    for (let i = 0; i < userDates.length; i++) {
+      if (document.querySelector(`.date-${i}`)) {
+        let thing = document.querySelector(`.date-${i}`); 
+        if (thing.innerHTML === clickedElement.innerHTML) {
+          thing.remove(); 
+          socket.emit('remov', i); 
+          userDates[i] = '?'; 
+          document.querySelector('.checking').innerHTML = "Removed!"; 
+          socket.emit('medication', { userDates, count }); 
+        }
+      }
+    }
+  }
+});
+
+document.querySelector('.submit-for-chat').addEventListener('click', () => {
+  sendMessage(); 
+})
 
 document.querySelector('.submit')
   .addEventListener('click', (e) => {
     e.preventDefault(); 
     let dateValue = document.querySelector('.calendar').value
+    //you have to send dateValue and document.querySelector('.time-input').value through socket.io
+    //formatDate, userDates
     dateValue = formatDate(dateValue) + ' ' + document.querySelector('.time-input').value; 
     for (let i = 0; i < userDates.length; i++) {
       if (userDates[i] === dateValue) {
@@ -188,14 +295,20 @@ document.querySelector('.submit')
       userDates.push( dateValue );
       console.log(userDates); 
       document.querySelector('.checking').innerHTML = 'Logged!'; 
-      document.querySelector('.registered-dates').innerHTML += `<p class="date-${count} registered-date">- ${document.querySelector('.pill-name').value + ' ' + userDates[count] }</p>`; 
+      let coolBeans; 
+      if (document.querySelector('.pill-name').value) {
+        coolBeans = document.querySelector('.pill-name').value + ', '
+      } else {
+        coolBeans = '';
+      }
+      document.querySelector('.registered-dates').innerHTML += `<p class="date-${count} registered-date">${coolBeans + userDates[count] }</p>`; 
       count++
+      socket.emit('medication', { userDates, count }); 
     }
     disableButton('.submit');
   });    
 
 document.addEventListener('DOMContentLoaded', () => {
-  const socket = io('http://localhost:3500');
   socket.on('ledStatus', (data) => {
     currentLine = data; 
     if (!currentLine.startsWith('sys')) {
@@ -208,11 +321,15 @@ document.addEventListener('DOMContentLoaded', () => {
       dia = Number(splitQuote[1].split(' = ')[1]);
       hr = Number(splitQuote[2].split(' = ')[1]);
       spo2 = Number(splitQuote[3].split(' = ')[1]);
+      ppg = Number(splitQuote[4].split(' = ')[1]);
+      if (ppg) {
+        myChart.data.datasets[0].data.push(ppg); 
+        updateChart(); 
+        sendMetrics(); 
+      }
       if (hr !== 0) {
         document.querySelector('.heartrate')
           .innerHTML = hr; 
-        myChart.data.datasets[0].data.push(hr);
-        updateChart(); 
       } else {
         document.querySelector('.heartrate')
           .innerHTML = '--'; 
@@ -220,15 +337,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (sys !== 0) {
         document.querySelector('.systolic')
           .innerHTML = sys;
-        myChart.data.datasets[2].data.push(sys);  
       } else {
         document.querySelector('.systolic')
           .innerHTML = '--'; 
       }
       if (dia !== 0) {
         document.querySelector('.diastolic')
-          .innerHTML = dia; 
-          myChart.data.datasets[1].data.push(dia);  
+          .innerHTML = dia;   
       } else {
         document.querySelector('.diastolic')
           .innerHTML = '--'; 
@@ -236,7 +351,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (spo2 !== 0) {
         document.querySelector('.oxygen')
           .innerHTML = spo2; 
-        myChart.data.datasets[3].data.push(spo2); 
       } else {
         document.querySelector('.oxygen')
           .innerHTML = '--'; 
@@ -246,12 +360,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function displayStage() {
-  if (sys && dia) {
-    console.log('hi'); 
-    document.querySelector('.bp-paragraph').innerHTML = `You ${bpStage(sys, dia)}`; 
-  }  
-}
 document.querySelector('.diastolic').addEventListener('click', displayStage); 
 document.querySelector('.systolic').addEventListener('click', displayStage); 
 document.querySelector('.oxygen').addEventListener('click', () => {
@@ -261,6 +369,7 @@ document.querySelector('.oxygen').addEventListener('click', () => {
     document.querySelector('.oxygen-paragraph').innerHTML = 'Your SpO2 levels are below average. Please consult with a medical professional.'
   }
 });
+
 document.querySelector('.heartrate').addEventListener('click', () => {
   if (hr > 200) {
     document.querySelector('.heart-paragraph').innerHTML = 'Your heart rate is dangerously high. Please consult with a medical professional.'; 
@@ -270,11 +379,15 @@ document.querySelector('.heartrate').addEventListener('click', () => {
     document.querySelector('.heart-paragraph').innerHTML = 'Your resting heart rate is normal.'
   }
 });
+
 document.querySelector('.the-paragraph').addEventListener('click', () => {
+  socket.emit('medication', document.querySelector('.the-paragraph').innerHTML); 
   document.querySelector('.the-paragraph').innerHTML = ''; 
   document.querySelector('.the-paragraph').style.padding = '0px'; 
   socket.emit('toggleLed', '0'); 
 });
+
+/*
 document.getElementById('myCheckbox').addEventListener('change', function() {
   if (this.checked) {
     socket.emit('toggleLed', '8'); 
@@ -298,13 +411,7 @@ document.querySelector('.wbv-range').addEventListener('change', () => {
     socket.emit('toggleLed', 'a'); 
   }; 
   disableButton('.wbv-range'); 
-})
+});
+*/
+
 //clear box after submit 
-// document.querySelector('.calendar')
-//   .addEventListener('change', () => {
-//   });
-// document.querySelector('.time-input')
-//   .addEventListener('change', () => {
-//   });
-//7, 15 58, 89, 90, 107, 108
-//7, 13, 107, 58 

@@ -5,12 +5,21 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400;500;700&family=Shadows+Into+Light&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
   <body>
-    <div class="div-to-center">
-      <p class="the-paragraph"></p>
+    <div class="everything">
+      <div class="input-everything">
+        <div>
+          <input class="message" placeholder="Enter message" style="font-size: 16px;">
+          <button class="submit-for-chat" style="font-size: 16px;">Submit</button>
+        </div>
+      </div>
+      <div class="texts"></div>
     </div>
-    <p class="check-calibration">--</p>
+    <div class="div-to-center">
+      <h1 class="the-paragraph">Patient's Cardiovascular Metrics</h1>
+    </div>
     <div class="readings">
       <div class="readings-one">
         <div class="plac remove-top">
@@ -32,11 +41,12 @@
           <a style="text-decoration: none;" href="#targetElement" class="systolic">--</a>
         </div>
       </div>
-    </div> 
+    </div>    
     <div style="height: 400px; width: 100% ">
       <canvas id="myChart"></canvas>
     </div>
-    <h1 style="text-align: center; margin-top: 70px;">Pill Medication Organizer</h1>
+    <p class="check-flatlining"></p>
+    <h2 style="text-align: center; margin-top: 70px;">Schedule Pill Medication for Patient</h2>
     <div style="display: grid; grid-template-columns: 1fr 1fr;">
       <div style="margin-left: 10px;">
         <form>
@@ -47,38 +57,20 @@
           <p class="checking"></p>
         </form> 
         <button class="submit">Submit</button>
-        <button class="clear">Clear</button>
       </div>
       <div class="registered-dates"></div>      
     </div>
-    <!--
-    <div class="wbv">
-      <p style="font-size: 20px; ">Enable whole body vibration?</p>
-      <label class="switch">
-        <input type="checkbox" class="myCheckbox" id="myCheckbox">
-        <span class="slider round"></span>
-      </label>
-        <input style="margin-left: 20px;" class="wbv-range" type="range" min="1" max="99" value="50">
-    </div>
-    -->
-    <div id="targetElement" class="informational">
-      <p><i>Heart rate</i> is the number of times your heart beats in a minute. An average heart rate is 60 to 100 beats per minute. <span class="heart-paragraph" style="background-color: rgb(10, 47, 255);"></span></p>
-      <p>Blood oxygen levels, otherwise known as <i>SpO2 levels</i>, is the percentage of oxygen saturated in your blood. The average SpO2 levels is 95% or higher. <span class="oxygen-paragraph" style="background-color: rgb(10, 47, 255);"></span></p>
-      <p><i>Diastolic blood pressure</i> measures the pressure in your arteries when your heart rests between beats. Systolic blood pressure measures the pressure in your arteries when your heart beats. 
-        Your blood pressure is the systolic over diastolic and is measured in millimeters of mercury. <span class="bp-paragraph" style="background-color: rgb(10, 47, 255);"></span>
-      </p>
-    </div>
-    <h1 style="text-align: center;">Chat with Doctor</h1>
-    <div class="everything">
-      
-      <div class="input-everything">
-        <div>
-          <input class="message" placeholder="Enter message" style="color: black; font-size: 16px;">
-          <button class="submit-for-chat" style="color: black; font-size: 16px;">Submit</button>
-        </div>
-      </div>
-      <div class="texts"></div>
-    </div>
+    
+    <h2 style="margin-top: 70px; text-align: center; ">Medication Record of Patient</h2>
+    <table class="table" style="margin-bottom: 70px;">
+      <tr>
+        <th></th>
+        <th style="background-color: #dadada;">Pill Name</th>
+        <th style="background-color: #dadada;">Date</th>
+        <th style="background-color: #dadada;">Time</th>
+      </tr>
+    </table>
+
     <script type="module" src="main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js'></script>

@@ -1,20 +1,25 @@
 #include <Wire.h>
 #include <FastLED.h>
-#define LED_PIN 3
+#define LED_PIN 2
 #define NUM_LEDS 60
 #define RAWDATA_BUFFLEN 250 
 CRGB leds[NUM_LEDS];
 
+/*
 #include "Adafruit_DRV2605.h"
 Adafruit_DRV2605 drv;
 float HRreading = 0;
 uint8_t effect = 15;
 unsigned long cardiacCycle;
 bool toggle = false; 
+*/
+
+#include "MAX30105.h"
+MAX30105 particleSensor;
 
 #include "max32664.h"
 #define RESET_PIN 04
-#define MFIO_PIN 02
+#define MFIO_PIN 03
 #define RAWDATA_BUFFLEN 250
 max32664 MAX32664(RESET_PIN, MFIO_PIN, RAWDATA_BUFFLEN);
 void mfioInterruptHndlr(){
@@ -45,6 +50,12 @@ void setup() {
   FastLED.clear(); 
   FastLED.show(); 
 
+  if (particleSensor.begin() == false) {
+    Serial.println("MAX30105 was not found. Please check wiring/power. ");
+    while (1);
+  }
+  particleSensor.setup();
+
   loadAlgomodeParameters();
   int result = MAX32664.hubBegin();
   if (result == CMD_SUCCESS){
@@ -67,12 +78,14 @@ void setup() {
     delay(1000);
   }
 
+  /*
   if (!drv.begin()) {
     Serial.println("Could not find DRV2605");
     while (1) delay(10);
   }
   drv.selectLibrary(1);
   drv.setMode(DRV2605_MODE_INTTRIG); 
+  */
 
   Serial.println("Getting the device ready..");
   delay(1000);
@@ -89,13 +102,14 @@ void loop() {
     Serial.print(", dia = ");
     Serial.print(MAX32664.max32664Output.dia);
     Serial.print(", hr = ");
-
-    HRreading = MAX32664.max32664Output.hr;
-    Serial.print(HRreading);
-
+    Serial.print(MAX32664.max32664Output.hr);
     Serial.print(", spo2 = ");
-    Serial.println(MAX32664.max32664Output.spo2);
-
+    Serial.print(MAX32664.max32664Output.spo2);
+    Serial.print(", ppg = "); 
+    Serial.println(particleSensor.getIR()); 
+    delay(100); 
+  }
+    /*
     if (toggle == true) {
       if (HRreading != 0) {
         drv.setWaveform(0, effect); 
@@ -112,7 +126,7 @@ void loop() {
   } else {
     delay(100);
   }
-  
+  */
 }
 
 void serialEvent() {
@@ -158,6 +172,7 @@ void serialEvent() {
       FastLED.delay(100);  
       FastLED.show();  
     }
+    /*
     if (command == '8') {
       toggle = true; 
     }
@@ -176,7 +191,7 @@ void serialEvent() {
     if (command == 'd') {
       effect = 58; 
     }
-
+    */
   }
 }
 
