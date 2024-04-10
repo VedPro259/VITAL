@@ -13,7 +13,7 @@ let ppg;
 var today = new Date();
 var dd = String(today.getDate()).padStart(2, '0');
 var mm = String(today.getMonth() + 1).padStart(2, '0'); 
-var yyyy = today.getFullYear();
+var yyyy = today.getFullYear();sdasd
 today = yyyy + '-' + mm + '-' + dd;
 document.getElementById("myDate").setAttribute('min', today);
 // document.querySelector('.wbv-range').disabled = true; 
@@ -94,7 +94,7 @@ function detectFlatlining(ppgSignals, threshold) {
   const variation = calculateVariation(ppgSignals);
   //detect flatlining based on the variation
   if (variation < threshold) {
-      socket.emit('remov', 'Flatlining detected'); //flatlining detected
+      socket.emit('remov', 'FLATLINING DETECTED'); //flatlining detected
   } else {
       socket.emit('remov', 'Heartbeat detected'); //no flatlining detected
   }
