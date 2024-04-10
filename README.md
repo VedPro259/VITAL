@@ -1,5 +1,5 @@
 features currently added: 
-- Heartrate, SpO2, and BP reading using the MAX32664D sensor to web server using serialport package
+- Heartrate, SpO2, and BP reading using the MAX32664D sensor is sent to web server using serialport package
 - Flatlining Detection using IR PPG signals
 - Organizing Pill Medication through Name, Time, and Date
 - Pill Alerts utlizing LED strip
