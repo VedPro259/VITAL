@@ -113,7 +113,6 @@ function updateChart() {
   }
   if (myChart.data.datasets[0].data.length > 199) {
     detectFlatlining(myChart.data.datasets[0].data, 500);
-    console.log(myChart.data.datasets[0].data.length); 
     myChart.data.datasets[0].data = []; 
     myChart.data.labels = []; 
   }
@@ -183,7 +182,6 @@ function checkReminders() {
 
 function displayStage() {
   if (sys && dia) {
-    console.log('hi'); 
     document.querySelector('.bp-paragraph').innerHTML = `You ${bpStage(sys, dia)}`; 
   }  
 };
@@ -196,7 +194,6 @@ socket.on('remov', data => {
 socket.on("medication", data => {
   userDates = data.userDates; 
   count = data.count; 
-  console.log(userDates);
 });
 
 socket.on("message", data => {
@@ -221,7 +218,6 @@ socket.on('setDates', data => {
     document.querySelector('.checking').innerHTML = 'Please enter proper credentials'; 
   } else {     
     userDates.push( dateValue );
-    console.log(userDates); 
     document.querySelector('.checking').innerHTML = 'Logged!'; 
     let coolBeans; 
     if (pillName) {
@@ -293,7 +289,6 @@ document.querySelector('.submit')
       document.querySelector('.checking').innerHTML = 'Please enter proper credentials'; 
     } else {     
       userDates.push( dateValue );
-      console.log(userDates); 
       document.querySelector('.checking').innerHTML = 'Logged!'; 
       let coolBeans; 
       if (document.querySelector('.pill-name').value) {

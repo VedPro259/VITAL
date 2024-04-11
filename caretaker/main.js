@@ -103,7 +103,7 @@ socket.on('remov', data => {
   if (data === "Heartbeat detected") {
     document.querySelector('.check-flatlining').style.color = 'black'; 
     document.querySelector('.check-flatlining').innerHTML = data; 
-  } else if (data === "Flatlining detected") {
+  } else if (data === "FLATLINING DETECTED") {
     document.querySelector('.check-flatlining').innerHTML = data;
     document.querySelector('.check-flatlining').style.color = 'red'; 
   } else if (data === -1) {
@@ -221,8 +221,7 @@ document.querySelector('.submit')
     }
     if (dateValue.includes('undefined') || dateValue.includes('NaN')) {
       document.querySelector('.checking').innerHTML = 'Please enter proper credentials'; 
-    } else {  
-      console.log(userDates);    
+    } else {    
       userDates.push( dateValue );
       
       document.querySelector('.checking').innerHTML = 'Logged!'; 
@@ -255,7 +254,6 @@ document.querySelector('.submit')
       document.querySelector('.checking').innerHTML = 'Please enter proper credentials'; 
     } else {     
       userDates.push( dateValue );
-      console.log(userDates); 
       document.querySelector('.checking').innerHTML = 'Logged!'; 
       document.querySelector('.registered-dates').innerHTML += `<p class="date-${count} registered-date">${document.querySelector('.pill-name').value + ' ' + userDates[count] }</p>`; 
       count++
